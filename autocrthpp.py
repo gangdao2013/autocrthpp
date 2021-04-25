@@ -20,12 +20,31 @@ class AutoCrtHpp:
             with open(pro, 'r') as f:
                 line = f.readline()
                 while line:
+                    filename = ''
                     if 'HEADERS' in line:
-                        fnewpro.write(line + '\t' + hfile + ' \\\n')
+                        filename = hfile
                     elif 'SOURCES' in line:
-                        fnewpro.write(line + '\t' + cppfile + ' \\\n')
+                        filename = cppfile
                     else:
                         fnewpro.write(line)
+
+                    if len(filename) > 0:
+                        tmp = line.replace('\n', '').strip()
+                        if tmp.endswith('\\'):
+                            fnewpro.write(line)
+                            line = f.readline()
+                            if line:
+                                for i in line:
+                                    if i > 'a' and i < 'z' or i > 'A' and i <'Z':
+                                        pos = line.index(i)
+                                        fnewpro.write(line[0:pos] + filename + ' \\\n')
+                                        break
+                            else:
+                                fnewpro.write('\t' + filename + ' \\\n')
+                            fnewpro.write(line)
+                        else:
+                            fnewpro.write(tmp + '\t' + filename + ' \n')
+
                     line = f.readline()
                 f.close()
             fnewpro.close()
