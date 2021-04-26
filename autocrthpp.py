@@ -3,10 +3,16 @@
 # -*- coding: cp936 -*-
 import os
 from os import path,system
+from datetime import datetime
 
 class AutoCrtHpp:
     def __init__(self):
-        pass
+        self.note = '/*!\n \
+\\file:   %s\n \
+\\brief:  %s\n \
+\\author: wei.g iESLab\n \
+\\Date:	  %s\n \
+*/\n\n'
 
     def add2pro(self, hfile, cppfile):
         pro = ''
@@ -51,11 +57,12 @@ class AutoCrtHpp:
             os.remove(pro)
             os.rename(newPro, pro)
 
-    def crt(self, clsname):
+    def crt(self, clsname, desc):
         realCls = 'C%s' % (clsname)
         hfile = clsname.lower() + '.h'
         cppfile = clsname.lower() + '.cpp'
         with open(hfile, 'w') as f:
+            f.write(self.note % (hfile, desc, datetime.now().strftime('%Y/%m/%d')))
             macro = '_%s_H' % (clsname.upper())
             f.write('#ifndef %s\n' % (macro))
             f.write('#define %s\n\n' % (macro))
@@ -68,6 +75,7 @@ class AutoCrtHpp:
             f.write('#endif // !%s\n' % (macro))
             f.close()
         with open(cppfile, 'w') as f:
+            f.write(self.note % (cppfile, desc, datetime.now().strftime('%Y/%m/%d')))
             f.write('#include "%s"\n\n' % (hfile))
             f.write('%s::%s()\n{\n}\n\n' % (realCls, realCls))
             f.write('%s::~%s()\n{\n}\n' % (realCls, realCls))
@@ -77,5 +85,5 @@ class AutoCrtHpp:
 if __name__ == '__main__':
     ac = AutoCrtHpp()
     clsname = 'BreakerSchema'
-    hfile, cppfile = ac.crt(clsname)
+    hfile, cppfile = ac.crt(clsname, '设备模型访问类')
     ac.add2pro(hfile, cppfile)
