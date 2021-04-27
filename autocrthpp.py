@@ -64,6 +64,8 @@ class AutoCrtHpp:
         realCls = 'C%s' % (clsname)
         hfile = clsname.lower() + '.h'
         cppfile = clsname.lower() + '.cpp'
+        if os.path.exists(hfile) or os.path.exists(cppfile):
+            return False, hfile, cppfile
         with open(hfile, 'w') as f:
             f.write(self.note % (hfile, desc, datetime.now().strftime('%Y/%m/%d')))
             macro = '_%s_H' % (clsname.upper())
@@ -83,51 +85,43 @@ class AutoCrtHpp:
             f.write('%s::%s()\n{\n}\n\n' % (realCls, realCls))
             f.write('%s::~%s()\n{\n}\n' % (realCls, realCls))
             f.close()
-        return hfile, cppfile
+        return True, hfile, cppfile
 
-class verification_window(tk.Frame):
-    # 调用时初始化
+class mainWin(tk.Frame):
     def __init__(self):
         self.root = tk.Tk()
-        self.root.geometry('180x280+885+465')
+        self.root.geometry('180x200+400+200')
         super().__init__()
-        self.username = tk.StringVar()
-        self.password = tk.StringVar()
+        self.clsname = tk.StringVar()
+        self.clsdesc = tk.StringVar()
         self.pack()
         self.main_window()
         self.root.mainloop()
-
-    # 窗口布局
     def main_window(self):
-        username_label = tk.Label(self.root, text='SVN帐号:', font=('Arial', 12)).pack(anchor=W)
-        username_input = tk.StringVar
-        username_entry = tk.Entry(self.root, textvariable=self.username).pack(anchor=W)
-
-        password_label = tk.Label(self.root, text='SVN密码:', font=('Arial', 12)).pack(anchor=W)
-        password_input = tk.StringVar
-        password_entry = tk.Entry(self.root, textvariable=self.password, show='*').pack(anchor=W)
-
-        # 在按下CONFIRM按钮时调用验证函数
-        conformation_button = tk.Button(self.root, text='确认', command=self.onOk, fg='white', bg='black',
-                                        activeforeground='white', activebackground='navy', width=8, height=1)
-        conformation_button.pack(side=LEFT, anchor=W)
-
-        quit_button = tk.Button(self.root, text='退出', command=self.root.quit, fg='white', bg='black',
-                                activeforeground='white', activebackground='red', width=8, height=1)
-        quit_button.pack(side=RIGHT, anchor=W)
-
+        tk.Label(self.root, text='类名称:', font=('Arial', 12)).pack(anchor=W)
+        tk.Entry(self.root, textvariable=self.clsname).pack(anchor=W)
+        tk.Label(self.root, text='类描述:', font=('Arial', 12)).pack(anchor=W)
+        tk.Entry(self.root, textvariable=self.clsdesc).pack(anchor=W)
+        tk.Button(self.root, text='创建', command=self.onOk, fg='white', bg='black',
+                  activeforeground='white', activebackground='navy', width=8, height=1)\
+            .pack(side=LEFT, anchor=W)
+        tk.Button(self.root, text='退出', command=self.root.quit, fg='white', bg='black',
+                  activeforeground='white', activebackground='red', width=8, height=1)\
+            .pack(side=RIGHT, anchor=W)
     def onOk(self):
-        usr = self.username.get()
-        pwd = self.password.get()
-        if len(usr) == 0 or len(pwd) == 0:
-            messagebox.showerror(title='Wrong inputs!', message='用户名和密码不能为空.')
+        clsname = self.clsname.get()
+        if len(clsname) == 0:
+            messagebox.showerror(title='error', message='类名不能为空.')
         else:
-            ptype = self.pkgType.get()
+            ac = AutoCrtHpp()
+            result, hfile, cppfile = ac.crt(clsname, self.clsdesc.get())
+            if result:
+                ac.add2pro(hfile, cppfile)
+                os.system('qmake_vc.bat')
+                messagebox.showinfo(title='ok', message='已创建')
+            else:
+                messagebox.showinfo(title='ok', message='类文件已存在，不能创建')
 
-            messagebox.showinfo(title='Correct',
-                                message='结束时间：%s %s' % (time.strftime('%Y-%m-%d'), time.strftime('%H:%M:%S')))
+
 if __name__ == '__main__':
-    ac = AutoCrtHpp()
-    clsname = 'BreakerSchema'
-    hfile, cppfile = ac.crt(clsname, '设备模型访问类')
-    ac.add2pro(hfile, cppfile)
+    mainWin()
