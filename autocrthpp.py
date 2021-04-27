@@ -123,5 +123,46 @@ class mainWin(tk.Frame):
                 messagebox.showinfo(title='ok', message='类文件已存在，不能创建')
 
 
+class verification_window(tk.Frame):
+    # 调用时初始化
+    def __init__(self):
+        self.root = tk.Tk()
+        self.root.geometry('180x280+885+465')
+        super().__init__()
+        self.username = tk.StringVar()
+        self.password = tk.StringVar()
+        self.pack()
+        self.main_window()
+        self.root.mainloop()
+
+    # 窗口布局
+    def main_window(self):
+        username_label = tk.Label(self.root, text='SVN帐号:', font=('Arial', 12)).pack(anchor=W)
+        username_input = tk.StringVar
+        username_entry = tk.Entry(self.root, textvariable=self.username).pack(anchor=W)
+
+        password_label = tk.Label(self.root, text='SVN密码:', font=('Arial', 12)).pack(anchor=W)
+        password_input = tk.StringVar
+        password_entry = tk.Entry(self.root, textvariable=self.password, show='*').pack(anchor=W)
+
+        # 在按下CONFIRM按钮时调用验证函数
+        conformation_button = tk.Button(self.root, text='确认', command=self.onOk, fg='white', bg='black',
+                                        activeforeground='white', activebackground='navy', width=8, height=1)
+        conformation_button.pack(side=LEFT, anchor=W)
+
+        quit_button = tk.Button(self.root, text='退出', command=self.root.quit, fg='white', bg='black',
+                                activeforeground='white', activebackground='red', width=8, height=1)
+        quit_button.pack(side=RIGHT, anchor=W)
+
+    def onOk(self):
+        usr = self.username.get()
+        pwd = self.password.get()
+        if len(usr) == 0 or len(pwd) == 0:
+            messagebox.showerror(title='Wrong inputs!', message='用户名和密码不能为空.')
+        else:
+            ptype = self.pkgType.get()
+
+            messagebox.showinfo(title='Correct',
+                                message='结束时间：%s %s' % (time.strftime('%Y-%m-%d'), time.strftime('%H:%M:%S')))
 if __name__ == '__main__':
     mainWin()
