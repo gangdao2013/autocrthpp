@@ -32,7 +32,7 @@ class AutoCrtHpp:
                     filename = ''
                     if 'HEADERS' in line:
                         filename = hfile
-                    elif 'SOURCES' in line:
+                    elif 'SOURCES' in line and 'RESOURCE' not in line:
                         filename = cppfile
                     else:
                         fnewpro.write(line)
