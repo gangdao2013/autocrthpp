@@ -60,7 +60,8 @@ class AutoCrtHpp:
             os.remove(pro)
             os.rename(newPro, pro)
 
-    def crt(self, clsname, desc):
+    def crt(self, clsname, desc, namespace):
+        useNS = len(namespace) > 0
         realCls = 'C%s' % (clsname)
         hfile = clsname.lower() + '.h'
         cppfile = clsname.lower() + '.cpp'
@@ -71,19 +72,29 @@ class AutoCrtHpp:
             macro = '_%s_H' % (clsname.upper())
             f.write('#ifndef %s\n' % (macro))
             f.write('#define %s\n\n' % (macro))
+            if useNS:
+                f.write('namespace %s\n' % (namespace))
+                f.write('{\n')
             f.write('class %s\n' % (realCls))
             f.write('{\n')
             f.write('public:\n')
             f.write('\t%s();\n' % (realCls))
             f.write('\t~%s();\n' % (realCls))
             f.write('};\n\n')
+            if useNS:
+                f.write('} // namespace %s\n' % (namespace))
             f.write('#endif // !%s\n' % (macro))
             f.close()
         with open(cppfile, 'w') as f:
             f.write(self.note % (cppfile, desc, datetime.now().strftime('%Y/%m/%d')))
             f.write('#include "%s"\n\n' % (hfile))
+            if useNS:
+                f.write('namespace %s\n' % (namespace))
+                f.write('{\n')
             f.write('%s::%s()\n{\n}\n\n' % (realCls, realCls))
             f.write('%s::~%s()\n{\n}\n' % (realCls, realCls))
+            if useNS:
+                f.write('} // namespace %s\n' % (namespace))
             f.close()
         return True, hfile, cppfile
 
@@ -92,12 +103,15 @@ class mainWin(tk.Frame):
         self.root = tk.Tk()
         self.root.geometry('180x200+400+200')
         super().__init__()
+        self.namespace = tk.StringVar()
         self.clsname = tk.StringVar()
         self.clsdesc = tk.StringVar()
         self.pack()
         self.main_window()
         self.root.mainloop()
     def main_window(self):
+        tk.Label(self.root, text='命名空间:', font=('Arial', 12)).pack(anchor=W)
+        tk.Entry(self.root, textvariable=self.namespace).pack(anchor=W)
         tk.Label(self.root, text='类名称:', font=('Arial', 12)).pack(anchor=W)
         tk.Entry(self.root, textvariable=self.clsname).pack(anchor=W)
         tk.Label(self.root, text='类描述:', font=('Arial', 12)).pack(anchor=W)
@@ -114,7 +128,7 @@ class mainWin(tk.Frame):
             messagebox.showerror(title='error', message='类名不能为空.')
         else:
             ac = AutoCrtHpp()
-            result, hfile, cppfile = ac.crt(clsname, self.clsdesc.get())
+            result, hfile, cppfile = ac.crt(clsname, self.clsdesc.get(), self.namespace.get())
             if result:
                 ac.add2pro(hfile, cppfile)
                 os.system('qmake_vc.bat')
